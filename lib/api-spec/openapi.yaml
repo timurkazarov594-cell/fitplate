@@ -1,0 +1,631 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: recipes
+    description: Recipe analysis operations
+  - name: nutrition
+    description: Nutrition coaching operations
+  - name: auth
+    description: User authentication and profile
+  - name: food-entries
+    description: User food diary entries
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /recipes/analyze:
+    post:
+      operationId: analyzeRecipe
+      tags: [recipes]
+      summary: Analyze a dish photo and generate a full recipe
+      description: Accepts a base64-encoded food photo, sends it to an AI vision model, and returns the recognized dish name with a complete recipe and nutrition facts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeRecipeRequest"
+      responses:
+        "200":
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzedRecipe"
+        "400":
+          description: Bad request (missing or invalid image)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "422":
+          description: AI could not recognize a dish in the photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "500":
+          description: AI analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /nutrition/analyze:
+    post:
+      operationId: analyzeFood
+      tags: [nutrition]
+      summary: Analyze a food photo and return nutritional values
+      description: Accepts a base64-encoded food photo, calls an AI vision model, and returns the dish name, key ingredients, and estimated nutritional values per portion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FoodImageInput"
+      responses:
+        "200":
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodAnalysis"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "422":
+          description: No food detected in photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "500":
+          description: AI analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginCredentials"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /auth/purchase-pack:
+    post:
+      operationId: purchasePack
+      tags: [auth]
+      summary: Purchase a photo analysis pack (adds 21 credits)
+      description: Adds 21 photoCredits to the user. Currently a mock — replace with real YooKassa payment verification when connected.
+      responses:
+        "200":
+          description: Pack purchased, returns updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /auth/profile:
+    patch:
+      operationId: updateProfile
+      tags: [auth]
+      summary: Update user profile and recalculate daily targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /food-entries:
+    get:
+      operationId: getFoodEntries
+      tags: [food-entries]
+      summary: Get food diary entries for a user (optionally filtered by date)
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+          description: Filter by date (YYYY-MM-DD). If omitted, returns last 30 days.
+      responses:
+        "200":
+          description: List of food entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FoodEntryRecord"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+    post:
+      operationId: createFoodEntry
+      tags: [food-entries]
+      summary: Add a food entry to the diary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FoodEntryInput"
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodEntryRecord"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ApiErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+          minLength: 6
+        gender:
+          type: string
+          enum: [male, female]
+        age:
+          type: integer
+        height:
+          type: integer
+        weight:
+          type: number
+        goal:
+          type: string
+          enum: [loss, maintain, gain]
+        activity:
+          type: string
+          enum: [none, low, medium, high]
+      required:
+        - email
+        - name
+        - password
+        - gender
+        - age
+        - height
+        - weight
+        - goal
+        - activity
+    LoginCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        gender:
+          type: string
+        age:
+          type: integer
+        height:
+          type: integer
+        weight:
+          type: number
+        goal:
+          type: string
+        activity:
+          type: string
+        targetCalories:
+          type: integer
+        targetProtein:
+          type: integer
+        targetFat:
+          type: integer
+        targetCarbs:
+          type: integer
+        targetFiber:
+          type: integer
+        photoCredits:
+          type: integer
+          description: Number of photo analysis credits remaining.
+      required:
+        - id
+        - email
+        - name
+        - gender
+        - age
+        - height
+        - weight
+        - goal
+        - activity
+        - targetCalories
+        - targetProtein
+        - targetFat
+        - targetCarbs
+        - targetFiber
+        - photoCredits
+    AuthResult:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserPublic"
+      required:
+        - token
+        - user
+    ProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        gender:
+          type: string
+          enum: [male, female]
+        age:
+          type: integer
+        height:
+          type: integer
+        weight:
+          type: number
+        goal:
+          type: string
+          enum: [loss, maintain, gain]
+        activity:
+          type: string
+          enum: [none, low, medium, high]
+    FoodEntryInput:
+      type: object
+      properties:
+        date:
+          type: string
+          description: Date in YYYY-MM-DD format
+        dishName:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        calories:
+          type: number
+        protein:
+          type: number
+        fat:
+          type: number
+        carbs:
+          type: number
+        fiber:
+          type: number
+        portionWeight:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+      required:
+        - date
+        - dishName
+        - ingredients
+        - calories
+        - protein
+        - fat
+        - carbs
+        - fiber
+        - portionWeight
+    FoodEntryRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        date:
+          type: string
+        dishName:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        calories:
+          type: number
+        protein:
+          type: number
+        fat:
+          type: number
+        carbs:
+          type: number
+        fiber:
+          type: number
+        portionWeight:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - date
+        - dishName
+        - ingredients
+        - calories
+        - protein
+        - fat
+        - carbs
+        - fiber
+        - portionWeight
+        - createdAt
+    FoodImageInput:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+          description: Base64-encoded image data without the data URL prefix.
+          minLength: 1
+        mimeType:
+          type: string
+          description: Image MIME type, e.g. image/jpeg, image/png.
+          minLength: 1
+      required:
+        - imageBase64
+        - mimeType
+    FoodAnalysis:
+      type: object
+      properties:
+        dishName:
+          type: string
+          description: Recognized dish name in Russian.
+        ingredients:
+          type: array
+          description: List of visible main ingredients in Russian.
+          items:
+            type: string
+        calories:
+          type: number
+          description: Estimated calories per portion (kcal).
+        protein:
+          type: number
+          description: Estimated protein per portion (grams).
+        fat:
+          type: number
+          description: Estimated fat per portion (grams).
+        carbs:
+          type: number
+          description: Estimated carbohydrates per portion (grams).
+        fiber:
+          type: number
+          description: Estimated dietary fiber per portion (grams).
+        portionWeight:
+          type: number
+          description: Estimated portion weight in grams.
+      required:
+        - dishName
+        - ingredients
+        - calories
+        - protein
+        - fat
+        - carbs
+        - fiber
+        - portionWeight
+    AnalyzeRecipeRequest:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+          description: Base64-encoded image data, without the data URL prefix.
+          minLength: 1
+        mimeType:
+          type: string
+          description: Image MIME type, e.g. image/jpeg, image/png, image/webp.
+          minLength: 1
+      required:
+        - imageBase64
+        - mimeType
+    RecipeIngredient:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: string
+          description: Human-readable quantity such as "2 tbsp" or "200 g".
+      required:
+        - name
+        - quantity
+    NutritionFacts:
+      type: object
+      properties:
+        calories:
+          type: string
+          description: Calories per serving, formatted with units (e.g. "520 kcal").
+        protein:
+          type: string
+          description: Protein per serving, formatted with units (e.g. "32 g").
+        fats:
+          type: string
+          description: Fats per serving, formatted with units (e.g. "18 g").
+        carbs:
+          type: string
+          description: Carbohydrates per serving, formatted with units (e.g. "60 g").
+      required:
+        - calories
+        - protein
+        - fats
+        - carbs
+    AnalyzedRecipe:
+      type: object
+      properties:
+        dishName:
+          type: string
+        cuisine:
+          type: string
+          description: Estimated cuisine type, e.g. "Italian", "Japanese".
+        description:
+          type: string
+          description: Short, evocative description of the dish.
+        cookingTime:
+          type: string
+          description: Total cooking time formatted with units (e.g. "45 minutes").
+        difficulty:
+          type: string
+          description: Difficulty level (e.g. "Easy", "Medium", "Hard").
+        servingSize:
+          type: string
+          description: Serving size description (e.g. "Serves 4").
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeIngredient"
+        steps:
+          type: array
+          description: Ordered cooking steps.
+          items:
+            type: string
+        nutrition:
+          $ref: "#/components/schemas/NutritionFacts"
+      required:
+        - dishName
+        - cuisine
+        - description
+        - cookingTime
+        - difficulty
+        - servingSize
+        - ingredients
+        - steps
+        - nutrition
