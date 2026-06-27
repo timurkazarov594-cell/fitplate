@@ -5,14 +5,50 @@ echo "=== FitPlate Render Build ==="
 pwd
 ls -la
 
+echo "=== Install workspace ==="
 npx --yes pnpm@9.12.3 install --no-frozen-lockfile
+
+echo "=== Setup database ==="
+
+if [ -f "lib/db/package.json" ]; then
+  echo "Found lib/db"
+
+  if grep -q '"db:push"' lib/db/package.json; then
+    echo "Running db:push in lib/db"
+    cd lib/db
+    npx --yes pnpm@9.12.3 run db:push
+    cd ../..
+  elif grep -q '"push"' lib/db/package.json; then
+    echo "Running push in lib/db"
+    cd lib/db
+    npx --yes pnpm@9.12.3 run push
+    cd ../..
+  elif grep -q '"migrate"' lib/db/package.json; then
+    echo "Running migrate in lib/db"
+    cd lib/db
+    npx --yes pnpm@9.12.3 run migrate
+    cd ../..
+  else
+    echo "No db script found in lib/db/package.json"
+  fi
+fi
+
+if [ -f "prisma/schema.prisma" ]; then
+  echo "Found Prisma schema"
+  npx --yes prisma generate
+  npx --yes prisma db push
+fi
+
+if [ -f "artifacts/api-server/prisma/schema.prisma" ]; then
+  echo "Found Prisma schema in api-server"
+  cd artifacts/api-server
+  npx --yes prisma generate
+  npx --yes prisma db push
+  cd ../..
+fi
 
 FRONTEND="artifacts/nutrition-coach"
 BACKEND="artifacts/api-server"
-
-echo "=== Check folders ==="
-test -d "$FRONTEND"
-test -d "$BACKEND"
 
 echo "=== Build frontend ==="
 cd "$FRONTEND"
@@ -37,5 +73,3 @@ ls -la "$BACKEND/public"
 test -f "$BACKEND/public/index.html"
 
 echo "=== Build complete ==="
-
-node patch-index.mjs
