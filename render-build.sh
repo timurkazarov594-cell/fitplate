@@ -37,3 +37,5 @@ ls -la "$BACKEND/public"
 test -f "$BACKEND/public/index.html"
 
 echo "=== Build complete ==="
+
+node patch-index.mjs
