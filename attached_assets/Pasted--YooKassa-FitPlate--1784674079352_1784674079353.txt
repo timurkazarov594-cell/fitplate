@@ -1,0 +1,109 @@
+Полностью реализуй систему оплаты YooKassa для FitPlate.
+
+ТРЕБОВАНИЯ
+- Первый анализ бесплатный.
+- Затем каждый анализ требует кредит.
+- Если кредитов нет — показать оплату.
+- Пакет: 21 анализ за 399 ₽.
+- Использовать только YooKassa API.
+- Render Environment Variables:
+  YOOKASSA_SHOP_ID
+  YOOKASSA_SECRET_KEY
+  APP_BASE_URL
+- Получать только через process.env.
+
+БАЗА ДАННЫХ
+Поля пользователя:
+photoCredits
+freeAnalysisUsed
+createdAt
+updatedAt
+
+Новый пользователь:
+photoCredits = 0
+freeAnalysisUsed = false
+
+БЕСПЛАТНЫЙ АНАЛИЗ
+Если freeAnalysisUsed=false:
+- разрешить анализ;
+- после успешного анализа установить true;
+- кредиты не списывать.
+При ошибке ничего не менять.
+
+ПЛАТНЫЕ АНАЛИЗЫ
+Если credits==0:
+- не открывать камеру;
+- показать окно оплаты.
+
+Если credits>0:
+- выполнить анализ;
+- после успешного анализа списать 1 кредит;
+- при ошибке не списывать.
+
+BACKEND
+POST /api/payments/yookassa/create
+
+Цена только на backend.
+Создать запись pending.
+Использовать уникальный Idempotence-Key.
+
+Запрос в YooKassa:
+399 RUB
+capture=true
+redirect confirmation
+
+return_url:
+${process.env.APP_BASE_URL}/payment/success
+
+metadata:
+userId
+credits=21
+product=food_analyses_21
+
+Вернуть:
+confirmation_url
+paymentId
+
+WEBHOOK
+POST /api/payments/yookassa/webhook
+
+При payment.succeeded:
+- найти платеж;
+- если уже обработан — выйти;
+- начислить +21;
+- отметить completed;
+- сохранить payment_id;
+- исключить повторное начисление.
+
+FRONTEND
+Кнопка камеры без кредитов открывает оплату.
+Кнопка «Купить 21 анализ» использует тот же endpoint.
+После confirmation_url выполнить redirect.
+
+ПОСЛЕ ОПЛАТЫ
+Обновить профиль.
+Показать новые кредиты.
+
+ПОВТОРНЫЕ ПОКУПКИ
+Кредиты суммируются.
+
+БЕЗОПАСНОСТЬ
+Цена только на backend.
+Не доверять frontend.
+Использовать HTTPS.
+Логировать ошибки.
+
+TESTS
+Проверить:
+- бесплатный анализ;
+- успешную оплату;
+- повторную оплату;
+- двойной webhook;
+- отмену платежа;
+- списание кредитов;
+- отсутствие списания при ошибке.
+
+В КОНЦЕ
+Исправить все ошибки.
+Подготовить production-ready проект.
+Создать ZIP проекта.

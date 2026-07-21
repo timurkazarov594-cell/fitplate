@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/nutrition-coach/"
+title = "AI Nutrition Coach"
+version = "1.0.0"
+id = "artifacts/nutrition-coach"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/nutrition-coach/" ]
+localPort = 20638
+
+[services.development]
+run = "pnpm --filter @workspace/nutrition-coach run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nutrition-coach", "run", "build" ]
+publicDir = "artifacts/nutrition-coach/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20638"
+BASE_PATH = "/nutrition-coach/"

@@ -1,0 +1,26 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "09GLEaXGnK98dlardkt0c"
+uri = "file://ai-nutrition-coach-final.tar.gz"
+type = "unspecified"
+title = "ai-nutrition-coach-final.tar.gz"
+
+[[outputs]]
+id = "-kBSs-bk-upim3ECD0v9F"
+uri = "file://FitPlate_FINAL.zip"
+type = "unspecified"
+title = "FitPlate_FINAL.zip"
+
+[[outputs]]
+id = "wUBJZDuq50g_KYBz5eE6l"
+uri = "file://FitPlate_FINAL_SAFE.zip"
+type = "unspecified"
+title = "FitPlate_FINAL_SAFE.zip"
+
+[[outputs]]
+id = "I3xng8suPiIWgQ8UkA_Ng"
+uri = "file://fitplate.zip"
+type = "unspecified"
+title = "FitPlate — исходники проекта"
