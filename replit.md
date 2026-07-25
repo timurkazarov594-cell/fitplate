@@ -23,7 +23,7 @@ step-by-step instructions, and per-serving nutrition facts.
 
 ## Artifacts
 
-- `artifacts/recipe-scanner` — React + Vite frontend (served at `/`)
+- `artifacts/nutrition-coach` — React + Vite frontend (served at `/`)
 - `artifacts/api-server` — Express API (served at `/api`)
 
 ## Key endpoints

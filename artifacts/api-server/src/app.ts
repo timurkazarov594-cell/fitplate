@@ -8,13 +8,9 @@ import { logger } from "./lib/logger";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
-// Built client bundles (see artifacts/recipe-scanner and artifacts/nutrition-coach),
-// served by this same process since Render runs a single web service per app.
-const recipeScannerDist = path.resolve(
-  currentDir,
-  "../../recipe-scanner/dist/public",
-);
-const nutritionCoachDist = path.resolve(
+// Built client bundle (see artifacts/nutrition-coach), served by this same
+// process since Render runs a single web service per app.
+const clientDist = path.resolve(
   currentDir,
   "../../nutrition-coach/dist/public",
 );
@@ -49,14 +45,9 @@ app.use("/api", (_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-app.use("/nutrition-coach", express.static(nutritionCoachDist));
-app.get("/nutrition-coach/*splat", (_req, res) => {
-  res.sendFile(path.join(nutritionCoachDist, "index.html"));
-});
-
-app.use(express.static(recipeScannerDist));
+app.use(express.static(clientDist));
 app.get("*splat", (_req, res) => {
-  res.sendFile(path.join(recipeScannerDist, "index.html"));
+  res.sendFile(path.join(clientDist, "index.html"));
 });
 
 export default app;
