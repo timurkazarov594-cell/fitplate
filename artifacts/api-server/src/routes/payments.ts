@@ -9,7 +9,7 @@ const PACK_CREDITS = 21;
 const PACK_AMOUNT = "399.00";
 const PACK_CURRENCY = "RUB";
 const YOOKASSA_API = "https://api.yookassa.ru/v3/payments";
-const FRONTEND_PATH = "/nutrition-coach/payment/success";
+const FRONTEND_PATH = "/payment/success";
 
 function yookassaAuth(): string {
   const shopId = process.env["YOOKASSA_SHOP_ID"];
