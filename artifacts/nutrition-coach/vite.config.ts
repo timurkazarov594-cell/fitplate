@@ -18,16 +18,10 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
-
 export default defineConfig({
-  base: basePath,
+  // Hardcoded (not read from a BASE_PATH env var): this app is the only
+  // client served by api-server, always mounted at the site root.
+  base: "/",
   plugins: [
     react(),
     tailwindcss(),
