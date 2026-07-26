@@ -10,9 +10,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+const isLocalDatabase = /(^|@)(localhost|127\.0\.0\.1)(:|\/)/.test(
+  process.env.DATABASE_URL,
+);
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: isLocalDatabase ? false : { rejectUnauthorized: false },
 });
 export const db = drizzle(pool, { schema });
 
