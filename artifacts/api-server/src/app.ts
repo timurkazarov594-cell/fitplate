@@ -1,6 +1,11 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import express, { type Express } from "express";
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -48,6 +53,12 @@ app.use("/api", (_req, res) => {
 app.use(express.static(clientDist));
 app.get("*splat", (_req, res) => {
   res.sendFile(path.join(clientDist, "index.html"));
+});
+
+// Terminal error handler: never leak stack traces or raw SQL to clients.
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  req.log.error({ err }, "Unhandled error");
+  res.status(500).json({ error: "Внутренняя ошибка сервера." });
 });
 
 export default app;
