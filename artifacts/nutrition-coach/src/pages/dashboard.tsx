@@ -47,7 +47,7 @@ function MacroBar({ label, current, target, color }: { label: string; current: n
         <span>{label}</span>
         <span>{Math.round(current)} / {target} г</span>
       </div>
-      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+      <div className="h-3.5 rounded-full bg-secondary overflow-hidden">
         <motion.div
           className={`h-full rounded-full ${color}`}
           initial={{ width: 0 }}
@@ -235,22 +235,22 @@ export default function Dashboard() {
       <div className="px-5 mb-4">
         <div className="bg-card border border-border rounded-2xl p-6">
           <div className="flex items-center gap-6">
-            <div className="relative w-24 h-24 flex-shrink-0">
-              <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
-                <circle cx="48" cy="48" r="40" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+            <div className="relative w-28 h-28 flex-shrink-0">
+              <svg className="w-28 h-28 -rotate-90" viewBox="0 0 112 112">
+                <circle cx="56" cy="56" r="44" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
                 <motion.circle
-                  cx="48" cy="48" r="40" fill="none"
+                  cx="56" cy="56" r="44" fill="none"
                   stroke={totalCals > user.targetCalories * 1.1 ? "#f87171" : "hsl(var(--primary))"}
                   strokeWidth="8" strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 40}`}
-                  initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
-                  animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - calPct / 100) }}
+                  strokeDasharray={`${2 * Math.PI * 44}`}
+                  initial={{ strokeDashoffset: 2 * Math.PI * 44 }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 44 * (1 - calPct / 100) }}
                   transition={{ duration: 0.9, ease: "easeOut" }}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-lg font-bold leading-none">{Math.round(totalCals)}</span>
-                <span className="text-[10px] text-muted-foreground">ккал</span>
+                <span className="text-3xl font-bold leading-none">{Math.round(totalCals)}</span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">ккал</span>
               </div>
             </div>
             <div className="flex-1 space-y-3">
@@ -273,10 +273,10 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="mt-5 space-y-3">
-            <MacroBar label="Белки"     current={totalProtein} target={user.targetProtein} color="bg-blue-400" />
-            <MacroBar label="Жиры"      current={totalFat}     target={user.targetFat}     color="bg-amber-400" />
-            <MacroBar label="Углеводы"  current={totalCarbs}   target={user.targetCarbs}   color="bg-violet-400" />
-            <MacroBar label="Клетчатка" current={totalFiber}   target={user.targetFiber}   color="bg-emerald-400" />
+            <MacroBar label="Белки"     current={totalProtein} target={user.targetProtein} color="bg-sky-300" />
+            <MacroBar label="Жиры"      current={totalFat}     target={user.targetFat}     color="bg-amber-300" />
+            <MacroBar label="Углеводы"  current={totalCarbs}   target={user.targetCarbs}   color="bg-violet-300" />
+            <MacroBar label="Клетчатка" current={totalFiber}   target={user.targetFiber}   color="bg-emerald-300" />
           </div>
         </div>
       </div>
