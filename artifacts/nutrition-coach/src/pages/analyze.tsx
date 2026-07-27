@@ -84,7 +84,7 @@ export default function Analyze() {
 
   const startAnalysis = (compressedDataUrl: string, mimeType: string) => {
     if (!user) return;
-    if (user.photoCredits <= 0) {
+    if (user.freeAnalysisUsed && user.photoCredits <= 0) {
       setPhase("paywall");
       return;
     }
@@ -104,8 +104,14 @@ export default function Analyze() {
         onSuccess: (data) => {
           setResult(data);
           setPhase("result");
-          // Deduct 1 credit locally (backend already deducted it)
-          updateUser({ ...user, photoCredits: Math.max(0, user.photoCredits - 1) });
+          // Mirror the backend's accounting: the first analysis consumes the
+          // free trial without touching credits; every one after that
+          // deducts a paid credit (backend already deducted it there).
+          updateUser({
+            ...user,
+            freeAnalysisUsed: true,
+            photoCredits: user.freeAnalysisUsed ? Math.max(0, user.photoCredits - 1) : user.photoCredits,
+          });
         },
         onError: (err: unknown) => {
           if (isNoCreditsError(err)) {
@@ -121,7 +127,7 @@ export default function Analyze() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.photoCredits <= 0) {
+    if (user.freeAnalysisUsed && user.photoCredits <= 0) {
       setPhase("paywall");
       return;
     }

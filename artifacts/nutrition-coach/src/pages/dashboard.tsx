@@ -151,7 +151,7 @@ export default function Dashboard() {
 
   const openFilePicker = () => {
     if (!user) return;
-    if (user.photoCredits <= 0) {
+    if (user.freeAnalysisUsed && user.photoCredits <= 0) {
       setLocation("/payment");
       return;
     }
