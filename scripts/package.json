@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "create-partner": "tsx ./src/create-partner.ts",
+    "reset-partner-password": "tsx ./src/reset-partner-password.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
