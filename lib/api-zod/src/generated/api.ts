@@ -250,7 +250,12 @@ export const UpdateProfileResponse = zod.object({
  */
 export const LoginPartnerBody = zod.object({
   code: zod.string(),
-  password: zod.string(),
+  password: zod
+    .string()
+    .optional()
+    .describe(
+      "Currently unused — partner login is temporarily code-only. Kept for forward compatibility so password auth can be reinstated without a breaking API change.",
+    ),
 });
 
 export const LoginPartnerResponse = zod.object({

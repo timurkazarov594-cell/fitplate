@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 export default function PartnerLogin() {
   const [, setLocation] = useLocation();
   const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const mutation = useLoginPartner();
@@ -17,12 +16,12 @@ export default function PartnerLogin() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!code || !password) {
-      setError("Введите код партнёра и пароль.");
+    if (!code) {
+      setError("Введите код партнёра.");
       return;
     }
     mutation.mutate(
-      { data: { code, password } },
+      { data: { code } },
       {
         onSuccess: (data) => {
           setPartnerToken(data.token);
@@ -49,7 +48,7 @@ export default function PartnerLogin() {
       >
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold">Кабинет партнёра</h1>
-          <p className="text-muted-foreground mt-2">Вход по коду и паролю</p>
+          <p className="text-muted-foreground mt-2">Вход по коду партнёра</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,17 +60,6 @@ export default function PartnerLogin() {
               className="h-12 bg-card border-border"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Пароль</label>
-            <Input
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••"
-              className="h-12 bg-card border-border"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 

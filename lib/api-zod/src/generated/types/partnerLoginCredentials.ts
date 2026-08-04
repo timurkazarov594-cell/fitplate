@@ -8,5 +8,6 @@
 
 export interface PartnerLoginCredentials {
   code: string;
-  password: string;
+  /** Currently unused — partner login is temporarily code-only. Kept for forward compatibility so password auth can be reinstated without a breaking API change. */
+  password?: string;
 }

@@ -1,5 +1,4 @@
 import { Router, type IRouter } from "express";
-import bcrypt from "bcryptjs";
 import { db, partnersTable, usersTable, paymentsTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 import { LoginPartnerBody } from "@workspace/api-zod";
@@ -18,15 +17,12 @@ router.post("/partners/login", async (req, res) => {
 
   const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.code, code)).limit(1);
   if (!partner || !partner.isActive) {
-    res.status(401).json({ error: "Неверный код или пароль." });
+    res.status(401).json({ error: "Неверный код партнёра." });
     return;
   }
 
-  const ok = await bcrypt.compare(parsed.data.password, partner.passwordHash);
-  if (!ok) {
-    res.status(401).json({ error: "Неверный код или пароль." });
-    return;
-  }
+  // TEMPORARY (owner request, 2026): password check disabled — login is code-only for testing.
+  // To reinstate: `if (!(await bcrypt.compare(parsed.data.password ?? "", partner.passwordHash))) { ...401... }`
 
   const token = signPartnerToken(partner.id);
   res.json({ token, partner: { id: partner.id, code: partner.code, name: partner.name } });
