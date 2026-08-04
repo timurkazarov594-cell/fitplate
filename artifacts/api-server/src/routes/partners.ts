@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, partnersTable, usersTable, paymentsTable } from "@workspace/db";
+import { db, partnersTable, usersTable, paymentsTable, partnerLinkClicksTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
-import { LoginPartnerBody } from "@workspace/api-zod";
+import { LoginPartnerBody, TrackPartnerReferralClickBody } from "@workspace/api-zod";
 import { signPartnerToken } from "../lib/auth.js";
 import { requirePartnerAuth, type PartnerAuthRequest } from "../middlewares/requirePartnerAuth.js";
 
@@ -28,12 +28,37 @@ router.post("/partners/login", async (req, res) => {
   res.json({ token, partner: { id: partner.id, code: partner.code, name: partner.name } });
 });
 
+// Fire-and-forget analytics beacon: called by the frontend whenever a page loads
+// with ?ref=CODE, before the visitor has registered. Always acks — unknown codes
+// aren't reported as errors, so this endpoint can't be used to probe valid codes.
+router.post("/partners/track-click", async (req, res) => {
+  const parsed = TrackPartnerReferralClickBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.json({ ok: true });
+    return;
+  }
+  const code = parsed.data.code.trim().toUpperCase();
+
+  const [partner] = await db.select({ id: partnersTable.id }).from(partnersTable)
+    .where(and(eq(partnersTable.code, code), eq(partnersTable.isActive, true)))
+    .limit(1);
+
+  if (partner) {
+    await db.insert(partnerLinkClicksTable).values({ partnerId: partner.id });
+  }
+
+  res.json({ ok: true });
+});
+
 router.get("/partners/me/stats", requirePartnerAuth, async (req: PartnerAuthRequest, res) => {
   const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, req.partnerId!)).limit(1);
   if (!partner) {
     res.status(404).json({ error: "Партнёр не найден." });
     return;
   }
+
+  const clicks = await db.select({ id: partnerLinkClicksTable.id }).from(partnerLinkClicksTable)
+    .where(eq(partnerLinkClicksTable.partnerId, partner.id));
 
   const registrations = await db.select({ id: usersTable.id }).from(usersTable)
     .where(eq(usersTable.referredByPartnerId, partner.id));
@@ -50,6 +75,7 @@ router.get("/partners/me/stats", requirePartnerAuth, async (req: PartnerAuthRequ
   res.json({
     code: partner.code,
     name: partner.name,
+    clicksCount: clicks.length,
     registrationsCount: registrations.length,
     paymentsCount: succeededPayments.length,
     paymentsSumRub: paymentsSumRub.toFixed(2),

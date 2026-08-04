@@ -10,7 +10,12 @@ export default function PartnerDashboard() {
   const [token, setToken] = useState(getPartnerToken);
 
   const { data, isLoading, isError } = useGetPartnerStats({
-    query: { enabled: !!token, queryKey: getGetPartnerStatsQueryKey() },
+    query: {
+      enabled: !!token,
+      queryKey: getGetPartnerStatsQueryKey(),
+      refetchInterval: 15_000,
+      refetchOnWindowFocus: true,
+    },
     request: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
   });
 
@@ -74,20 +79,28 @@ export default function PartnerDashboard() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Регистраций</CardTitle>
+                <CardHeader className="pb-2 px-3">
+                  <CardTitle className="text-xs text-muted-foreground">Переходов</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3">
+                  <p className="text-2xl font-bold">{data.clicksCount}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2 px-3">
+                  <CardTitle className="text-xs text-muted-foreground">Регистраций</CardTitle>
+                </CardHeader>
+                <CardContent className="px-3">
                   <p className="text-2xl font-bold">{data.registrationsCount}</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Оплат</CardTitle>
+                <CardHeader className="pb-2 px-3">
+                  <CardTitle className="text-xs text-muted-foreground">Оплат</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3">
                   <p className="text-2xl font-bold">{data.paymentsCount}</p>
                 </CardContent>
               </Card>
@@ -99,15 +112,6 @@ export default function PartnerDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">{data.paymentsSumRub} ₽</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-primary/40">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Комиссия нарастающим итогом</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-primary">{data.commissionSumRub} ₽</p>
               </CardContent>
             </Card>
           </div>

@@ -268,6 +268,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+  /partners/track-click:
+    post:
+      operationId: trackPartnerReferralClick
+      tags: [partners]
+      summary: Log a click-through on a partner's referral link
+      description: Called by the frontend when a page loads with ?ref=CODE, before the visitor registers. Always acknowledges, even for unknown codes, to avoid leaking which codes exist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackReferralClickInput"
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookAck"
   /partners/me/stats:
     get:
       operationId: getPartnerStats
@@ -761,6 +780,9 @@ components:
           type: string
         name:
           type: string
+        clicksCount:
+          type: integer
+          description: Number of times the partner's referral link (?ref=CODE) was opened.
         registrationsCount:
           type: integer
           description: Number of users who registered with this partner's code.
@@ -776,7 +798,16 @@ components:
       required:
         - code
         - name
+        - clicksCount
         - registrationsCount
         - paymentsCount
         - paymentsSumRub
         - commissionSumRub
+    TrackReferralClickInput:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 32
+      required:
+        - code

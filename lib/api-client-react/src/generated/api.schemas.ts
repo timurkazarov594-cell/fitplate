@@ -269,6 +269,8 @@ export interface PartnerAuthResult {
 export interface PartnerStats {
   code: string;
   name: string;
+  /** Number of times the partner's referral link (?ref=CODE) was opened. */
+  clicksCount: number;
   /** Number of users who registered with this partner's code. */
   registrationsCount: number;
   /** Number of succeeded payments attributed to this partner. */
@@ -277,6 +279,11 @@ export interface PartnerStats {
   paymentsSumRub: string;
   /** Cumulative commission owed to this partner, formatted as a decimal string. */
   commissionSumRub: string;
+}
+
+export interface TrackReferralClickInput {
+  /** @maxLength 32 */
+  code: string;
 }
 
 export type GetFoodEntriesParams = {

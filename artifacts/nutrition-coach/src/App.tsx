@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/authContext";
-import { captureReferralFromUrl } from "@/lib/referral";
+import { captureReferralFromUrl, getRefCodeFromUrlParam } from "@/lib/referral";
+import { trackPartnerReferralClick } from "@workspace/api-client-react";
 import { SupportButton } from "@/components/support-button";
 import NotFound from "@/pages/not-found";
 
@@ -50,6 +51,12 @@ function Router() {
 function App() {
   useEffect(() => {
     captureReferralFromUrl();
+    const code = getRefCodeFromUrlParam();
+    if (code) {
+      trackPartnerReferralClick({ code }).catch(() => {
+        // Best-effort analytics beacon — a failed click log must never block the page.
+      });
+    }
   }, []);
 
   return (

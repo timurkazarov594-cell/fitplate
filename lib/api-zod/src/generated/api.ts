@@ -268,11 +268,30 @@ export const LoginPartnerResponse = zod.object({
 });
 
 /**
+ * Called by the frontend when a page loads with ?ref=CODE, before the visitor registers. Always acknowledges, even for unknown codes, to avoid leaking which codes exist.
+ * @summary Log a click-through on a partner's referral link
+ */
+export const trackPartnerReferralClickBodyCodeMax = 32;
+
+export const TrackPartnerReferralClickBody = zod.object({
+  code: zod.string().max(trackPartnerReferralClickBodyCodeMax),
+});
+
+export const TrackPartnerReferralClickResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
  * @summary Get current partner's referral statistics
  */
 export const GetPartnerStatsResponse = zod.object({
   code: zod.string(),
   name: zod.string(),
+  clicksCount: zod
+    .number()
+    .describe(
+      "Number of times the partner's referral link (?ref=CODE) was opened.",
+    ),
   registrationsCount: zod
     .number()
     .describe("Number of users who registered with this partner's code."),

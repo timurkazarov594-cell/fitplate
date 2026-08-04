@@ -27,6 +27,7 @@ export * from "./profileUpdateActivity";
 export * from "./profileUpdateGender";
 export * from "./profileUpdateGoal";
 export * from "./recipeIngredient";
+export * from "./trackReferralClickInput";
 export * from "./userPublic";
 export * from "./userRegistration";
 export * from "./userRegistrationActivity";

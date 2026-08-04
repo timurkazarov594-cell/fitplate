@@ -14,6 +14,13 @@ export function captureReferralFromUrl(): void {
   localStorage.setItem(REF_KEY, JSON.stringify(entry));
 }
 
+// Unlike captureReferralFromUrl (first-touch, deduped), this reflects every page
+// load that carries ?ref=CODE — used to log a click-through, not to attribute a signup.
+export function getRefCodeFromUrlParam(): string | null {
+  const code = new URLSearchParams(window.location.search).get("ref");
+  return code ? code.trim().toUpperCase() : null;
+}
+
 export function getReferralCode(): string | null {
   const raw = localStorage.getItem(REF_KEY);
   if (!raw) return null;

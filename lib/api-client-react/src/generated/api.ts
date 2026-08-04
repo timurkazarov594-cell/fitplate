@@ -32,6 +32,7 @@ import type {
   PartnerLoginCredentials,
   PartnerStats,
   ProfileUpdate,
+  TrackReferralClickInput,
   UserPublic,
   UserRegistration,
   WebhookAck,
@@ -866,6 +867,94 @@ export const useLoginPartner = <
   TContext
 > => {
   return useMutation(getLoginPartnerMutationOptions(options));
+};
+
+/**
+ * Called by the frontend when a page loads with ?ref=CODE, before the visitor registers. Always acknowledges, even for unknown codes, to avoid leaking which codes exist.
+ * @summary Log a click-through on a partner's referral link
+ */
+export const getTrackPartnerReferralClickUrl = () => {
+  return `/api/partners/track-click`;
+};
+
+export const trackPartnerReferralClick = async (
+  trackReferralClickInput: TrackReferralClickInput,
+  options?: RequestInit,
+): Promise<WebhookAck> => {
+  return customFetch<WebhookAck>(getTrackPartnerReferralClickUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(trackReferralClickInput),
+  });
+};
+
+export const getTrackPartnerReferralClickMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof trackPartnerReferralClick>>,
+    TError,
+    { data: BodyType<TrackReferralClickInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof trackPartnerReferralClick>>,
+  TError,
+  { data: BodyType<TrackReferralClickInput> },
+  TContext
+> => {
+  const mutationKey = ["trackPartnerReferralClick"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof trackPartnerReferralClick>>,
+    { data: BodyType<TrackReferralClickInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return trackPartnerReferralClick(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TrackPartnerReferralClickMutationResult = NonNullable<
+  Awaited<ReturnType<typeof trackPartnerReferralClick>>
+>;
+export type TrackPartnerReferralClickMutationBody =
+  BodyType<TrackReferralClickInput>;
+export type TrackPartnerReferralClickMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Log a click-through on a partner's referral link
+ */
+export const useTrackPartnerReferralClick = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof trackPartnerReferralClick>>,
+    TError,
+    { data: BodyType<TrackReferralClickInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof trackPartnerReferralClick>>,
+  TError,
+  { data: BodyType<TrackReferralClickInput> },
+  TContext
+> => {
+  return useMutation(getTrackPartnerReferralClickMutationOptions(options));
 };
 
 /**
