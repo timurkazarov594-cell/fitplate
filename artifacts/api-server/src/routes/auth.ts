@@ -1,9 +1,9 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, partnersTable } from "@workspace/db";
+import { and, eq } from "drizzle-orm";
 import { RegisterUserBody, LoginUserBody, UpdateProfileBody } from "@workspace/api-zod";
-import { signToken, calculateTargets } from "../lib/auth.js";
+import { signUserToken, calculateTargets } from "../lib/auth.js";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth.js";
 
 const router: IRouter = Router();
@@ -35,7 +35,7 @@ router.post("/auth/register", async (req, res) => {
     res.status(400).json({ error: "Проверьте введённые данные." });
     return;
   }
-  const { email, name, password, ...profile } = parsed.data;
+  const { email, name, password, referredBy, ...profile } = parsed.data;
 
   const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
   if (existing.length > 0) {
@@ -45,6 +45,20 @@ router.post("/auth/register", async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const targets = calculateTargets(profile);
+
+  let referredByPartnerId: number | null = null;
+  let referredByCode: string | null = null;
+  if (referredBy) {
+    const normalizedCode = referredBy.trim().toUpperCase();
+    const [partner] = await db.select({ id: partnersTable.id, code: partnersTable.code })
+      .from(partnersTable)
+      .where(and(eq(partnersTable.code, normalizedCode), eq(partnersTable.isActive, true)))
+      .limit(1);
+    if (partner) {
+      referredByPartnerId = partner.id;
+      referredByCode = partner.code;
+    }
+  }
 
   const [user] = await db.insert(usersTable).values({
     email: email.toLowerCase(),
@@ -59,9 +73,11 @@ router.post("/auth/register", async (req, res) => {
     ...targets,
     photoCredits: 0,
     freeAnalysisUsed: false,
+    referredByPartnerId,
+    referredByCode,
   }).returning();
 
-  const token = signToken(user.id);
+  const token = signUserToken(user.id);
   res.status(201).json({ token, user: toPublic(user) });
 });
 
@@ -85,7 +101,7 @@ router.post("/auth/login", async (req, res) => {
     return;
   }
 
-  const token = signToken(user.id);
+  const token = signUserToken(user.id);
   res.json({ token, user: toPublic(user) });
 });
 

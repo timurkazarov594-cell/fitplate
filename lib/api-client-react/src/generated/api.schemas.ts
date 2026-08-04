@@ -51,6 +51,11 @@ export interface UserRegistration {
   weight: number;
   goal: UserRegistrationGoal;
   activity: UserRegistrationActivity;
+  /**
+   * Partner referral code captured from the ?ref= link, if any.
+   * @maxLength 32
+   */
+  referredBy?: string;
 }
 
 export interface LoginCredentials {
@@ -242,6 +247,35 @@ export interface YookassaPaymentCreated {
 
 export interface WebhookAck {
   ok: boolean;
+}
+
+export interface PartnerLoginCredentials {
+  code: string;
+  password: string;
+}
+
+export interface PartnerPublic {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface PartnerAuthResult {
+  token: string;
+  partner: PartnerPublic;
+}
+
+export interface PartnerStats {
+  code: string;
+  name: string;
+  /** Number of users who registered with this partner's code. */
+  registrationsCount: number;
+  /** Number of succeeded payments attributed to this partner. */
+  paymentsCount: number;
+  /** Sum of succeeded payment amounts attributed to this partner, formatted as a decimal string. */
+  paymentsSumRub: string;
+  /** Cumulative commission owed to this partner, formatted as a decimal string. */
+  commissionSumRub: string;
 }
 
 export type GetFoodEntriesParams = {

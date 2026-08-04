@@ -28,6 +28,9 @@ import type {
   GetFoodEntriesParams,
   HealthStatus,
   LoginCredentials,
+  PartnerAuthResult,
+  PartnerLoginCredentials,
+  PartnerStats,
   ProfileUpdate,
   UserPublic,
   UserRegistration,
@@ -778,6 +781,167 @@ export const useUpdateProfile = <
 > => {
   return useMutation(getUpdateProfileMutationOptions(options));
 };
+
+/**
+ * @summary Partner login with referral code and password
+ */
+export const getLoginPartnerUrl = () => {
+  return `/api/partners/login`;
+};
+
+export const loginPartner = async (
+  partnerLoginCredentials: PartnerLoginCredentials,
+  options?: RequestInit,
+): Promise<PartnerAuthResult> => {
+  return customFetch<PartnerAuthResult>(getLoginPartnerUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(partnerLoginCredentials),
+  });
+};
+
+export const getLoginPartnerMutationOptions = <
+  TError = ErrorType<ApiErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof loginPartner>>,
+    TError,
+    { data: BodyType<PartnerLoginCredentials> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof loginPartner>>,
+  TError,
+  { data: BodyType<PartnerLoginCredentials> },
+  TContext
+> => {
+  const mutationKey = ["loginPartner"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof loginPartner>>,
+    { data: BodyType<PartnerLoginCredentials> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return loginPartner(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginPartnerMutationResult = NonNullable<
+  Awaited<ReturnType<typeof loginPartner>>
+>;
+export type LoginPartnerMutationBody = BodyType<PartnerLoginCredentials>;
+export type LoginPartnerMutationError = ErrorType<ApiErrorResponse>;
+
+/**
+ * @summary Partner login with referral code and password
+ */
+export const useLoginPartner = <
+  TError = ErrorType<ApiErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof loginPartner>>,
+    TError,
+    { data: BodyType<PartnerLoginCredentials> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof loginPartner>>,
+  TError,
+  { data: BodyType<PartnerLoginCredentials> },
+  TContext
+> => {
+  return useMutation(getLoginPartnerMutationOptions(options));
+};
+
+/**
+ * @summary Get current partner's referral statistics
+ */
+export const getGetPartnerStatsUrl = () => {
+  return `/api/partners/me/stats`;
+};
+
+export const getPartnerStats = async (
+  options?: RequestInit,
+): Promise<PartnerStats> => {
+  return customFetch<PartnerStats>(getGetPartnerStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPartnerStatsQueryKey = () => {
+  return [`/api/partners/me/stats`] as const;
+};
+
+export const getGetPartnerStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPartnerStats>>,
+  TError = ErrorType<ApiErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPartnerStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPartnerStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPartnerStats>>> = ({
+    signal,
+  }) => getPartnerStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPartnerStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPartnerStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPartnerStats>>
+>;
+export type GetPartnerStatsQueryError = ErrorType<ApiErrorResponse>;
+
+/**
+ * @summary Get current partner's referral statistics
+ */
+
+export function useGetPartnerStats<
+  TData = Awaited<ReturnType<typeof getPartnerStats>>,
+  TError = ErrorType<ApiErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPartnerStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPartnerStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get food diary entries for a user (optionally filtered by date)

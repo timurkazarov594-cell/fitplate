@@ -5,6 +5,7 @@ import nutritionRouter from "./nutrition";
 import authRouter from "./auth";
 import foodEntriesRouter from "./food-entries";
 import paymentsRouter from "./payments";
+import partnersRouter from "./partners";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(nutritionRouter);
 router.use(authRouter);
 router.use(foodEntriesRouter);
 router.use(paymentsRouter);
+router.use(partnersRouter);
 
 export default router;

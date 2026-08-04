@@ -2,12 +2,18 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.SESSION_SECRET ?? "dev-secret-change-in-production";
 
-export interface JwtPayload {
-  userId: number;
+export type JwtPayload =
+  | { type: "user"; userId: number }
+  | { type: "partner"; partnerId: number }
+  // Legacy shape issued before partner tokens existed; treated as a user token.
+  | { userId: number };
+
+export function signUserToken(userId: number): string {
+  return jwt.sign({ type: "user", userId } satisfies JwtPayload, JWT_SECRET, { expiresIn: "90d" });
 }
 
-export function signToken(userId: number): string {
-  return jwt.sign({ userId } satisfies JwtPayload, JWT_SECRET, { expiresIn: "90d" });
+export function signPartnerToken(partnerId: number): string {
+  return jwt.sign({ type: "partner", partnerId } satisfies JwtPayload, JWT_SECRET, { expiresIn: "90d" });
 }
 
 export function verifyToken(token: string): JwtPayload {

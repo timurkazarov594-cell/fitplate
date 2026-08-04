@@ -20,4 +20,9 @@ export interface UserRegistration {
   weight: number;
   goal: UserRegistrationGoal;
   activity: UserRegistrationActivity;
+  /**
+   * Partner referral code captured from the ?ref= link, if any.
+   * @maxLength 32
+   */
+  referredBy?: string;
 }

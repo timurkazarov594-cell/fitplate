@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, paymentsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth.js";
 
 const router: IRouter = Router();
@@ -10,6 +10,14 @@ const PACK_AMOUNT = "399.00";
 const PACK_CURRENCY = "RUB";
 const YOOKASSA_API = "https://api.yookassa.ru/v3/payments";
 const FRONTEND_PATH = "/payment/success";
+
+const PARTNER_COMMISSION_RATE = 0.5;
+
+function calcCommission(amountRub: string): string {
+  const amountCents = Math.round(parseFloat(amountRub) * 100);
+  const commissionCents = Math.round(amountCents * PARTNER_COMMISSION_RATE);
+  return (commissionCents / 100).toFixed(2);
+}
 
 function yookassaAuth(): string {
   const shopId = process.env["YOOKASSA_SHOP_ID"];
@@ -145,15 +153,8 @@ router.post("/payments/yookassa/webhook", async (req, res) => {
     return;
   }
 
-  // Idempotency guard — already processed
-  if (payment.status === "succeeded") {
-    req.log.info({ ykPaymentId }, "Webhook: already processed, skipping");
-    res.json({ ok: true });
-    return;
-  }
-
   const [user] = await db
-    .select({ id: usersTable.id, photoCredits: usersTable.photoCredits })
+    .select({ id: usersTable.id, photoCredits: usersTable.photoCredits, referredByPartnerId: usersTable.referredByPartnerId })
     .from(usersTable)
     .where(eq(usersTable.id, payment.userId))
     .limit(1);
@@ -164,19 +165,30 @@ router.post("/payments/yookassa/webhook", async (req, res) => {
     return;
   }
 
-  // Credit user and mark payment succeeded — both in the same logical step
+  const partnerId = user.referredByPartnerId;
+  const commissionRub = partnerId ? calcCommission(payment.amountRub) : null;
+
+  // Atomic guard: only the request that actually flips the status gets to credit the user,
+  // so concurrent/duplicate webhook deliveries for the same payment can't double-credit.
+  const [updatedPayment] = await db
+    .update(paymentsTable)
+    .set({ status: "succeeded", processedAt: new Date(), partnerId, commissionRub })
+    .where(and(eq(paymentsTable.id, payment.id), ne(paymentsTable.status, "succeeded")))
+    .returning();
+
+  if (!updatedPayment) {
+    req.log.info({ ykPaymentId }, "Webhook: already processed, skipping");
+    res.json({ ok: true });
+    return;
+  }
+
   await db
     .update(usersTable)
     .set({ photoCredits: user.photoCredits + payment.credits })
     .where(eq(usersTable.id, user.id));
 
-  await db
-    .update(paymentsTable)
-    .set({ status: "succeeded", processedAt: new Date() })
-    .where(eq(paymentsTable.id, payment.id));
-
   req.log.info(
-    { ykPaymentId, userId: user.id, addedCredits: payment.credits, newTotal: user.photoCredits + payment.credits },
+    { ykPaymentId, userId: user.id, addedCredits: payment.credits, newTotal: user.photoCredits + payment.credits, partnerId, commissionRub },
     "Webhook: credits added",
   );
 

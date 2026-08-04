@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/authContext";
+import { captureReferralFromUrl } from "@/lib/referral";
 import { SupportButton } from "@/components/support-button";
 import NotFound from "@/pages/not-found";
 
@@ -16,6 +18,8 @@ import Stats from "@/pages/stats";
 import Settings from "@/pages/settings";
 import Payment from "@/pages/payment";
 import PaymentSuccess from "@/pages/payment-success";
+import PartnerLogin from "@/pages/partner-login";
+import PartnerDashboard from "@/pages/partner-dashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,12 +40,18 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/payment" component={Payment} />
       <Route path="/payment/success" component={PaymentSuccess} />
+      <Route path="/partner/login" component={PartnerLogin} />
+      <Route path="/partner" component={PartnerDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  useEffect(() => {
+    captureReferralFromUrl();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

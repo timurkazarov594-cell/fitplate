@@ -20,6 +20,8 @@ tags:
     description: User food diary entries
   - name: payments
     description: Payment operations
+  - name: partners
+    description: Partner referral accounts
 paths:
   /healthz:
     get:
@@ -242,6 +244,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+  /partners/login:
+    post:
+      operationId: loginPartner
+      tags: [partners]
+      summary: Partner login with referral code and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerLoginCredentials"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerAuthResult"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /partners/me/stats:
+    get:
+      operationId: getPartnerStats
+      tags: [partners]
+      summary: Get current partner's referral statistics
+      responses:
+        "200":
+          description: Partner statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerStats"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
   /food-entries:
     get:
       operationId: getFoodEntries
@@ -332,6 +376,10 @@ components:
         activity:
           type: string
           enum: [none, low, medium, high]
+        referredBy:
+          type: string
+          description: Partner referral code captured from the ?ref= link, if any.
+          maxLength: 32
       required:
         - email
         - name
@@ -673,3 +721,62 @@ components:
           type: boolean
       required:
         - ok
+    PartnerLoginCredentials:
+      type: object
+      properties:
+        code:
+          type: string
+        password:
+          type: string
+      required:
+        - code
+        - password
+    PartnerPublic:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - code
+        - name
+    PartnerAuthResult:
+      type: object
+      properties:
+        token:
+          type: string
+        partner:
+          $ref: "#/components/schemas/PartnerPublic"
+      required:
+        - token
+        - partner
+    PartnerStats:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        registrationsCount:
+          type: integer
+          description: Number of users who registered with this partner's code.
+        paymentsCount:
+          type: integer
+          description: Number of succeeded payments attributed to this partner.
+        paymentsSumRub:
+          type: string
+          description: Sum of succeeded payment amounts attributed to this partner, formatted as a decimal string.
+        commissionSumRub:
+          type: string
+          description: Cumulative commission owed to this partner, formatted as a decimal string.
+      required:
+        - code
+        - name
+        - registrationsCount
+        - paymentsCount
+        - paymentsSumRub
+        - commissionSumRub

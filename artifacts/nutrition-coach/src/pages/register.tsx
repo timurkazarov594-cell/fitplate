@@ -6,6 +6,7 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import { useRegisterUser } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/authContext";
+import { getReferralCode, clearReferralCode } from "@/lib/referral";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,10 +56,12 @@ export default function Register() {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!agreed) return;
     setApiError("");
+    const referredBy = getReferralCode();
     mutation.mutate(
-      { data: values },
+      { data: { ...values, ...(referredBy ? { referredBy } : {}) } },
       {
         onSuccess: (data) => {
+          clearReferralCode();
           setAuth(data.token, data.user);
           setLocation("/dashboard");
         },

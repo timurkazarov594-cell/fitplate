@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, real, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { partnersTable } from "./partners";
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -22,6 +23,8 @@ export const usersTable = pgTable("users", {
   freeAnalysesUsed: integer("free_analyses_used").notNull().default(0),
   freeAnalysisUsed: boolean("free_analysis_used").notNull().default(false),
   photoCredits: integer("photo_credits").notNull().default(0),
+  referredByPartnerId: integer("referred_by_partner_id").references(() => partnersTable.id, { onDelete: "set null" }),
+  referredByCode: text("referred_by_code"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

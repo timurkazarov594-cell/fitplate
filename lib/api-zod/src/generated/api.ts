@@ -111,6 +111,8 @@ export const AnalyzeFoodResponse = zod.object({
  */
 export const registerUserBodyPasswordMin = 6;
 
+export const registerUserBodyReferredByMax = 32;
+
 export const RegisterUserBody = zod.object({
   email: zod.string(),
   name: zod.string(),
@@ -121,6 +123,11 @@ export const RegisterUserBody = zod.object({
   weight: zod.number(),
   goal: zod.enum(["loss", "maintain", "gain"]),
   activity: zod.enum(["none", "low", "medium", "high"]),
+  referredBy: zod
+    .string()
+    .max(registerUserBodyReferredByMax)
+    .optional()
+    .describe("Partner referral code captured from the ?ref= link, if any."),
 });
 
 /**
@@ -236,6 +243,47 @@ export const UpdateProfileResponse = zod.object({
   freeAnalysisUsed: zod
     .boolean()
     .describe("Whether the user has used their one free analysis."),
+});
+
+/**
+ * @summary Partner login with referral code and password
+ */
+export const LoginPartnerBody = zod.object({
+  code: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginPartnerResponse = zod.object({
+  token: zod.string(),
+  partner: zod.object({
+    id: zod.number(),
+    code: zod.string(),
+    name: zod.string(),
+  }),
+});
+
+/**
+ * @summary Get current partner's referral statistics
+ */
+export const GetPartnerStatsResponse = zod.object({
+  code: zod.string(),
+  name: zod.string(),
+  registrationsCount: zod
+    .number()
+    .describe("Number of users who registered with this partner's code."),
+  paymentsCount: zod
+    .number()
+    .describe("Number of succeeded payments attributed to this partner."),
+  paymentsSumRub: zod
+    .string()
+    .describe(
+      "Sum of succeeded payment amounts attributed to this partner, formatted as a decimal string.",
+    ),
+  commissionSumRub: zod
+    .string()
+    .describe(
+      "Cumulative commission owed to this partner, formatted as a decimal string.",
+    ),
 });
 
 /**
