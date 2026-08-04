@@ -18,7 +18,7 @@ import Stats from "@/pages/stats";
 import Settings from "@/pages/settings";
 import Payment from "@/pages/payment";
 import PaymentSuccess from "@/pages/payment-success";
-import PartnerLogin from "@/pages/partner-login";
+import PartnerAccess from "@/pages/partner-access";
 import PartnerDashboard from "@/pages/partner-dashboard";
 
 const queryClient = new QueryClient({
@@ -40,8 +40,8 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/payment" component={Payment} />
       <Route path="/payment/success" component={PaymentSuccess} />
-      <Route path="/partner/login" component={PartnerLogin} />
       <Route path="/partner" component={PartnerDashboard} />
+      <Route path="/partner/:code" component={PartnerAccess} />
       <Route component={NotFound} />
     </Switch>
   );

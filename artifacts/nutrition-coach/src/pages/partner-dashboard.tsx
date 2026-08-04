@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState } from "react";
 import { useGetPartnerStats, getGetPartnerStatsQueryKey } from "@workspace/api-client-react";
 import { getPartnerToken, clearPartnerToken } from "@/lib/partnerAuth";
 import { Button } from "@/components/ui/button";
@@ -7,20 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 export default function PartnerDashboard() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const token = getPartnerToken();
-
-  useEffect(() => {
-    if (!token) setLocation("/partner/login");
-  }, [token, setLocation]);
+  const [token, setToken] = useState(getPartnerToken);
 
   const { data, isLoading, isError } = useGetPartnerStats({
     query: { enabled: !!token, queryKey: getGetPartnerStatsQueryKey() },
     request: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
   });
 
-  if (!token) return null;
+  if (!token) {
+    return (
+      <div className="min-h-[100dvh] bg-background text-foreground flex items-center justify-center px-5 text-center">
+        <p className="text-muted-foreground max-w-sm">
+          Нет доступа. Откройте вашу персональную ссылку вида /partner/КОД.
+        </p>
+      </div>
+    );
+  }
 
   const referralLink = data ? `${window.location.origin}/?ref=${data.code}` : "";
 
@@ -31,7 +33,7 @@ export default function PartnerDashboard() {
 
   const handleLogout = () => {
     clearPartnerToken();
-    setLocation("/partner/login");
+    setToken(null);
   };
 
   return (
