@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/authContext";
 import { captureReferralFromUrl, getRefCodeFromUrlParam } from "@/lib/referral";
 import { trackPartnerReferralClick } from "@workspace/api-client-react";
 import { SupportButton } from "@/components/support-button";
+import { InstallBanner } from "@/components/install-banner";
 import NotFound from "@/pages/not-found";
 
 import Onboarding from "@/pages/onboarding";
@@ -63,6 +64,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          <InstallBanner />
           <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
             <Router />
           </WouterRouter>
